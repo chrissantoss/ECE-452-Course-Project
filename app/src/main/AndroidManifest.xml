@@ -19,7 +19,11 @@
         <activity
             android:name=".HomePageActivity"
             android:exported="false"
-            android:label="" />
+            android:label="HomePage" />
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:label="Register" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
