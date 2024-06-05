@@ -9,7 +9,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RegisterActivity extends AppCompatActivity {
-    EditText username;
+    EditText userNameInpu;
     EditText password;
     EditText confirmPassword;
     Button login;
@@ -17,7 +17,7 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        username = findViewById(R.id.username);
+        userNameInpu = findViewById(R.id.userNameInput);
         password = findViewById(R.id.password);
         login = findViewById(R.id.login);
 

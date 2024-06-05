@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "933860511884",
+    "project_id": "motive-3a5d9",
+    "storage_bucket": "motive-3a5d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933860511884:android:b8ba8e9d15f0acc8b1eba9",
+        "android_client_info": {
+          "package_name": "com.motive.motive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwuf8nGU3YZAZ0pclFxsf2cuWzIQkPl40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
