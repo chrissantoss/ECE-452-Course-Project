@@ -1,4 +1,4 @@
-package com.motive.motive;
+package com.motive.motive.Activities;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +13,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.motive.motive.R;
+import com.motive.motive.Models.UserModel;
 //import com.google.firebase.auth.SignInMethodQueryResult;
 //import com.google.firebase.auth.UserRecord;
 //import com.google.firebase.firestore.DocumentSnapshot;

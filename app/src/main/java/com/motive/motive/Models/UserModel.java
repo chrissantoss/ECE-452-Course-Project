@@ -1,4 +1,4 @@
-package com.motive.motive;
+package com.motive.motive.Models;
 
 public class UserModel {
     private String username;

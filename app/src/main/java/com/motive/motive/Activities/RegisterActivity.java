@@ -1,4 +1,4 @@
-package com.motive.motive;
+package com.motive.motive.Activities;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,13 +13,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.motive.motive.R;
 
 public class RegisterActivity extends AppCompatActivity {
     EditText userNameInput;
     EditText password;
     EditText confirmPassword;
     Button registerBtn;
-    FirebaseAuth auth = FirebaseAuth.getInstance();
+    FirebaseAuth mAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
             Log.e("LoginActivity", "One or more views are null!");
         }
         registerBtn.setOnClickListener(v -> {
+            mAuth = FirebaseAuth.getInstance();
             registerEmailPass();
         });
 
@@ -52,14 +54,15 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
-        auth.createUserWithEmailAndPassword(email, pass)
+
+        mAuth.createUserWithEmailAndPassword(email, pass)
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d("Register", "createUserWithEmail:success");
-                        FirebaseUser user = auth.getCurrentUser();
+                        FirebaseUser user = mAuth.getCurrentUser();
                         Intent intent = new Intent(RegisterActivity.this, HomePageActivity.class);
                         startActivity(intent);
                     } else {

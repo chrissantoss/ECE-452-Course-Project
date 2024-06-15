@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "933860511884",
-    "project_id": "motive-3a5d9",
-    "storage_bucket": "motive-3a5d9.appspot.com"
+    "project_number": "289072134731",
+    "project_id": "ece452-course-project",
+    "storage_bucket": "ece452-course-project.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:933860511884:android:b8ba8e9d15f0acc8b1eba9",
+        "mobilesdk_app_id": "1:289072134731:android:c886dacc98d60acf3febce",
         "android_client_info": {
           "package_name": "com.motive.motive"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAwuf8nGU3YZAZ0pclFxsf2cuWzIQkPl40"
+          "current_key": "AIzaSyBnbiDH9fULPDMWVLmSWFR-udNZRErFfHc"
         }
       ],
       "services": {
