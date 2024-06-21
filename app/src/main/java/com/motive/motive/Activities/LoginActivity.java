@@ -62,6 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                     FirebaseUser user = auth.getCurrentUser();
                     Intent intent = new Intent(LoginActivity.this, HomePageActivity.class);
                     startActivity(intent);
+//                    finish();
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("Login", "signInWithEmail:failure", task.getException());
