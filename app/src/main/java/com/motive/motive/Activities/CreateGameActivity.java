@@ -2,6 +2,7 @@ package com.motive.motive.Activities;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -82,6 +83,8 @@ public class CreateGameActivity extends AppCompatActivity {
 
         String gameID = FirebaseFirestore.getInstance().collection("games").document().getId();
         GameModel game = new GameModel(gameID, "hostID", 0.0, 0.0, gameSize, gameType);
+        Log.e("Game OBJ OVERE HEREEE", String.valueOf(game));
+
         game.setExperience(beginner, intermediate, expert);
         game.setGenderPreference(male, female, neutral);
         game.setAgePreference(age16, age17to36, age36);
@@ -98,6 +101,8 @@ public class CreateGameActivity extends AppCompatActivity {
                             finish();
                         }else{
                             Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR CREATING GAME", String.valueOf(task.getException()));
+
                         }
                     }
                 });
