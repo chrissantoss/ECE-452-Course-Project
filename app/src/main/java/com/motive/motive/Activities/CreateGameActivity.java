@@ -38,7 +38,7 @@ public class CreateGameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_game);
 
-        gameTypeInput = findViewById(R.id.gameTypeInput);
+//        gameTypeInput = findViewById(R.id.gameTypeInput);
         gameSizeInput = findViewById(R.id.gameSizeInput);
         mandatoryItemsInput = findViewById(R.id.mandatoryItemsInput);
         experienceBeginner = findViewById(R.id.experienceBeginner);
@@ -69,7 +69,7 @@ public class CreateGameActivity extends AppCompatActivity {
             return;
         }
 
-        Integer gameSize = Integer.parseInt(gameSizeInput);
+        int gameSize = Integer.parseInt(gameSizeStr);
         boolean beginner = experienceBeginner.isChecked();
         boolean intermediate = experienceIntermediate.isChecked();
         boolean expert = experienceExpert.isChecked();
@@ -100,6 +100,6 @@ public class CreateGameActivity extends AppCompatActivity {
                             Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
                         }
                     }
-                })
+                });
     }
 }
