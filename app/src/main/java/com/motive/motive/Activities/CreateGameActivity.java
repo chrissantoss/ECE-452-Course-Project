@@ -83,8 +83,12 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             selectedLocation = latLng;
         });
 
-        LatLng defaultLocation = new LatLng(43.4723, -80.5449);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15));
+        LatLng userLocation = getIntent().getExtras().getParcelable("userLocation");
+        LatLng defaultLocation =  getIntent().getExtras().getParcelable("defaultLocation");
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                (userLocation != null) ? userLocation : defaultLocation,
+                15));
     }
 
     @Override

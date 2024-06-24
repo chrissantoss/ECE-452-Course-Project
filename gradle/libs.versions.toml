@@ -14,6 +14,7 @@ googleGmsGoogleServices = "4.4.2"
 firebaseFirestore = "25.0.0"
 firebaseAuth = "23.0.0"
 googleMaps = "18.2.0"
+playServicesLocation = "21.3.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -29,6 +30,8 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googleMaps" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
