@@ -11,13 +11,19 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 
-public class CreateGameActivity extends AppCompatActivity {
+public class CreateGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private EditText gameTypeInput;
     private EditText gameSizeInput;
@@ -34,12 +40,17 @@ public class CreateGameActivity extends AppCompatActivity {
     private EditText notesInput;
     private Button createGameButton;
 
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private LatLng selectedLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_game);
 
-//        gameTypeInput = findViewById(R.id.gameTypeInput);
+        // Initialize UI components
+        gameTypeInput = findViewById(R.id.gameTypeInput);
         gameSizeInput = findViewById(R.id.gameSizeInput);
         mandatoryItemsInput = findViewById(R.id.mandatoryItemsInput);
         experienceBeginner = findViewById(R.id.experienceBeginner);
@@ -54,13 +65,60 @@ public class CreateGameActivity extends AppCompatActivity {
         notesInput = findViewById(R.id.notesInput);
         createGameButton = findViewById(R.id.createGameButton);
 
+        // Initialize MapView
+        mapView = findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+
         createGameButton.setOnClickListener(v -> createGame());
     }
 
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.googleMap = googleMap;
+
+        googleMap.setOnMapClickListener(latLng -> {
+            googleMap.clear();
+            googleMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
+            selectedLocation = latLng;
+        });
+
+        LatLng defaultLocation = new LatLng(43.4723, -80.5449);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
 
     private void createGame() {
-//        String gameType = gameTypeInput.getText().toString();
-        String gameType = "Basketball";
+        String gameType = gameTypeInput.getText().toString();
         String gameSizeStr = gameSizeInput.getText().toString();
         String mandatoryItems = mandatoryItemsInput.getText().toString();
         String notes = notesInput.getText().toString();
@@ -82,9 +140,9 @@ public class CreateGameActivity extends AppCompatActivity {
         boolean age36 = age36Plus.isChecked();
 
         String gameID = FirebaseFirestore.getInstance().collection("games").document().getId();
-        GameModel game = new GameModel(gameID, "hostID", 0.0, 0.0, gameSize, gameType);
-        Log.e("Game OBJ OVERE HEREEE", String.valueOf(game));
-
+        double latitude = selectedLocation != null ? selectedLocation.latitude : 43.4723;
+        double longitude = selectedLocation != null ? selectedLocation.longitude : -80.5449;
+        GameModel game = new GameModel(gameID, "hostID", latitude, longitude, gameSize, gameType);
         game.setExperience(beginner, intermediate, expert);
         game.setGenderPreference(male, female, neutral);
         game.setAgePreference(age16, age17to36, age36);
@@ -96,13 +154,12 @@ public class CreateGameActivity extends AppCompatActivity {
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
                             finish();
-                        }else{
+                        } else {
                             Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
                             Log.e("ERR CREATING GAME", String.valueOf(task.getException()));
-
                         }
                     }
                 });
