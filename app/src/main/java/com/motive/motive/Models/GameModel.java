@@ -20,17 +20,20 @@ public class GameModel {
     private String notes;
     private List<String> participants;
 
+    private int gameSize;
+
     public GameModel() {
         // Public no-arg constructor needed
     }
 
-    public GameModel(String gameID, String hostID, double latitude, double longitude, int maxPlayers, String gameType) {
+    public GameModel(String gameID, String hostID, double latitude, double longitude, int maxPlayers, String gameTyp) {
         this.gameID = gameID;
         this.hostID = hostID;
         this.latitude = latitude;
         this.longitude = longitude;
         this.maxPlayers = maxPlayers;
         this.gameType = gameType;
+        this.gameSize = 1;
     }
 
     // Getters and Setters
@@ -141,4 +144,15 @@ public class GameModel {
         if (age36) age.append("36+ ");
         return age.toString().trim();
     }
+
+    public String getMandatoryItems() {
+        return mandatoryItems;
+    }
+
+    public String getNotes() {
+        return notes;
+    } public int getGameSize() {
+        return gameSize;
+    }
+
 }

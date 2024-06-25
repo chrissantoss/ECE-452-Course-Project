@@ -19,7 +19,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 
@@ -34,7 +38,10 @@ import com.google.firebase.firestore.FieldValue;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
+
+import com.google.android.gms.maps.model.Marker;
+
 
 public class CreateGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -137,12 +144,12 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                     }
                 });
     }
-    
-   private void showGameDetailsDialog(GameModel game) {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    LayoutInflater inflater = this.getLayoutInflater();
-    View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
-    builder.setView(dialogView);
+
+    private void showGameDetailsDialog(GameModel game) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
+        builder.setView(dialogView);
 
     TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
     TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
@@ -163,14 +170,14 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     notesTextView.setText(game.getNotes());
     participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
-    joinGameButton.setOnClickListener(v -> joinGame(game));
+        joinGameButton.setOnClickListener(v -> joinGame(game));
 
     AlertDialog dialog = builder.create();
     dialog.show();
 }
 
 
-private void joinGame(GameModel game) {
+    private void joinGame(GameModel game) {
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     if (currentUser != null) {
         String currentUserID = currentUser.getUid();

@@ -1,3 +1,3 @@
-public class JoinGameActivity {
-    
-}
+//public class JoinGameActivity {
+//
+//}
