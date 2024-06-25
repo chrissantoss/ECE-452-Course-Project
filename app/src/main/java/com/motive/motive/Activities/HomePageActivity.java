@@ -109,6 +109,71 @@ public class HomePageActivity extends AppCompatActivity {
         FirebaseFirestore.getInstance().collection("games").get();
 
     }
+
+    private void fetchGamesAndAddMarkers() {
+        FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(queryDocumentSnapshots -> {
+            if (queryDocumentSnapshots != null) {
+                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    GameModel game = document.toObject(GameModel.class);
+                    if (game != null) {
+                        games.add(game);
+                        LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
+                        map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
+                    }
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("Firestore", "Error fetching game data", e));
+    }
+
+    private void showGameDetailsDialog(GameModel game) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
+        builder.setView(dialogView);
+
+        TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
+        TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
+        TextView mandatoryItemsTextView = dialogView.findViewById(R.id.mandatoryItemsTextView);
+        TextView experienceTextView = dialogView.findViewById(R.id.experienceTextView);
+        TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
+        TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
+        TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
+        Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
+
+        gameTypeTextView.setText(game.getGameType());
+        gameSizeTextView.setText(String.valueOf(game.getGameSize()));
+        mandatoryItemsTextView.setText(game.getMandatoryItems());
+        experienceTextView.setText(game.getExperienceAsString());
+        genderTextView.setText(game.getGenderPreferenceAsString());
+        ageTextView.setText(game.getAgePreferenceAsString());
+        notesTextView.setText(game.getNotes());
+
+        joinGameButton.setOnClickListener(v -> joinGame(game));
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void joinGame(GameModel game) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String currentUserID = currentUser.getUid();
+
+            FirebaseFirestore.getInstance().collection("games").document(game.getGameID())
+                .update("participants", FieldValue.arrayUnion(currentUserID))
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(HomePageActivity.this, "Successfully joined the game", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(HomePageActivity.this, "Failed to join the game", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR JOINING GAME", String.valueOf(task.getException()));
+                    }
+                });
+        } else {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
