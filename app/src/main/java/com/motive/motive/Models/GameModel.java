@@ -18,6 +18,7 @@ public class GameModel {
     private boolean age36;
     private String mandatoryItems;
     private String notes;
+    private List<String> participants;
 
     public GameModel() {
         // Public no-arg constructor needed
@@ -108,7 +109,15 @@ public class GameModel {
     public void setNotes(String notes) {
         this.notes = notes;
     }
+    
+    public List<String> getParticipants() {
+        return participants;
+    }
 
+    public void setParticipants(List<String> participants) {
+        this.participants = participants;
+    }
+    
     public String getExperienceAsString() {
         StringBuilder experience = new StringBuilder();
         if (beginner) experience.append("Beginner ");

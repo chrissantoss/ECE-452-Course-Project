@@ -80,34 +80,34 @@ public class HomePageActivity extends AppCompatActivity {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
-        mapFragment.getMapAsync(googleMap -> {
-            map = googleMap;
-            map.setMyLocationEnabled(true);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(googleMap -> {
+                map = googleMap;
+                map.setMyLocationEnabled(true);
 
-            // Getting last known location
-            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                // Getting last known location
+                fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
                     if (location != null) {
                         // Move camera to user's location
                         Toast.makeText(this, "Location found", Toast.LENGTH_LONG).show();
                         userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
                     } else {
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15));
                         Toast.makeText(this, "Location not found", Toast.LENGTH_LONG).show();
                     }
+                    fetchGamesAndAddMarkers();
+                });
+
+                map.setOnMarkerClickListener(marker -> {
+                    GameModel game = markerGameMap.get(marker);
+                    if (game != null) {
+                        showGameDetailsDialog(game);
+                    }
+                    return true;
+                });
             });
-
-            for (GameModel game : games) {
-                Log.d("Firestore", "Adding marker at " +game.getLatitude()+", "+ game.getLongitude());
-                LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
-                map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
-            }
-
-
-
-        });
-
-        FirebaseFirestore.getInstance().collection("games").get();
-
+        }
     }
 
     private void fetchGamesAndAddMarkers() {

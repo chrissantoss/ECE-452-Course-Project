@@ -151,6 +151,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
     TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
     TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
+    TextView participantsTextView = dialogView.findViewById(R.id.participantsTextView);
     Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
 
     gameTypeTextView.setText(game.getGameType());
@@ -160,12 +161,14 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     genderTextView.setText(game.getGenderPreferenceAsString());
     ageTextView.setText(game.getAgePreferenceAsString());
     notesTextView.setText(game.getNotes());
+    participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
     joinGameButton.setOnClickListener(v -> joinGame(game));
 
     AlertDialog dialog = builder.create();
     dialog.show();
 }
+
 
 private void joinGame(GameModel game) {
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
