@@ -19,7 +19,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 
@@ -34,7 +38,10 @@ import com.google.firebase.firestore.FieldValue;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
+
+import com.google.android.gms.maps.model.Marker;
+
 
 public class CreateGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -137,37 +144,39 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                     }
                 });
     }
-    
-   private void showGameDetailsDialog(GameModel game) {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    LayoutInflater inflater = this.getLayoutInflater();
-    View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
-    builder.setView(dialogView);
 
-    TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
-    TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
-    TextView mandatoryItemsTextView = dialogView.findViewById(R.id.mandatoryItemsTextView);
-    TextView experienceTextView = dialogView.findViewById(R.id.experienceTextView);
-    TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
-    TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
-    TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
-    Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
+    private void showGameDetailsDialog(GameModel game) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
+        builder.setView(dialogView);
 
-    gameTypeTextView.setText(game.getGameType());
-    gameSizeTextView.setText(String.valueOf(game.getGameSize()));
-    mandatoryItemsTextView.setText(game.getMandatoryItems());
-    experienceTextView.setText(game.getExperienceAsString());
-    genderTextView.setText(game.getGenderPreferenceAsString());
-    ageTextView.setText(game.getAgePreferenceAsString());
-    notesTextView.setText(game.getNotes());
+        TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
+        TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
+        TextView mandatoryItemsTextView = dialogView.findViewById(R.id.mandatoryItemsTextView);
+        TextView experienceTextView = dialogView.findViewById(R.id.experienceTextView);
+        TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
+        TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
+        TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
+        Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
 
-    joinGameButton.setOnClickListener(v -> joinGame(game));
+        gameTypeTextView.setText(game.getGameType());
+        gameSizeTextView.setText(String.valueOf(game.getGameSize()));
+        mandatoryItemsTextView.setText(game.getMandatoryItems());
+        experienceTextView.setText(game.getExperienceAsString());
+        genderTextView.setText(game.getGenderPreferenceAsString());
+        ageTextView.setText(game.getAgePreferenceAsString());
+        notesTextView.setText(game.getNotes());
 
-    AlertDialog dialog = builder.create();
-    dialog.show();
-}
+        joinGameButton.setOnClickListener(v -> joinGame(game));
 
-private void joinGame(GameModel game) {
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
+
+    private void joinGame(GameModel game) {
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     if (currentUser != null) {
         String currentUserID = currentUser.getUid();

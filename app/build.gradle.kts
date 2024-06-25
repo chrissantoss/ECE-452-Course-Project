@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.google.maps)
     implementation(libs.play.services.location)
-    implementation (javax.annotation:javax.annotation-api:1.3.2)
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
