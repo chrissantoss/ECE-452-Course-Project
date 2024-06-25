@@ -109,5 +109,27 @@ public class GameModel {
         this.notes = notes;
     }
 
-    // Additional getters and setters for new fields
+    public String getExperienceAsString() {
+        StringBuilder experience = new StringBuilder();
+        if (beginner) experience.append("Beginner ");
+        if (intermediate) experience.append("Intermediate ");
+        if (expert) experience.append("Expert ");
+        return experience.toString().trim();
+    }
+
+    public String getGenderPreferenceAsString() {
+        StringBuilder gender = new StringBuilder();
+        if (male) gender.append("Male ");
+        if (female) gender.append("Female ");
+        if (neutral) gender.append("Neutral ");
+        return gender.toString().trim();
+    }
+
+    public String getAgePreferenceAsString() {
+        StringBuilder age = new StringBuilder();
+        if (age16) age.append("16 and under ");
+        if (age17to36) age.append("17 to 36 ");
+        if (age36) age.append("36+ ");
+        return age.toString().trim();
+    }
 }

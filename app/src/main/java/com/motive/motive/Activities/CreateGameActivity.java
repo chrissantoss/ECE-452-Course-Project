@@ -23,6 +23,19 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 
+import android.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
 public class CreateGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private EditText gameTypeInput;
@@ -43,6 +56,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     private MapView mapView;
     private GoogleMap googleMap;
     private LatLng selectedLocation;
+    private Map<Marker, GameModel> markerGameMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +85,11 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         mapView.getMapAsync(this);
 
         createGameButton.setOnClickListener(v -> createGame());
+        fetchGamesAndAddMarkers();
+
     }
 
-    @Override
+   @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
 
@@ -83,43 +99,94 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             selectedLocation = latLng;
         });
 
+        googleMap.setOnMarkerClickListener(marker -> {
+            GameModel game = markerGameMap.get(marker);
+            if (game != null) {
+                showGameDetailsDialog(game);
+            }
+            return true;
+        });
+
         LatLng userLocation = getIntent().getExtras().getParcelable("userLocation");
-        LatLng defaultLocation =  getIntent().getExtras().getParcelable("defaultLocation");
+        LatLng defaultLocation = getIntent().getExtras().getParcelable("defaultLocation");
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 (userLocation != null) ? userLocation : defaultLocation,
                 15));
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mapView.onPause();
-    }
+    private void fetchGamesAndAddMarkers() {
+        FirebaseFirestore.getInstance().collection("games")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            Toast.makeText(CreateGameActivity.this, "Failed to fetch games", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
+                        markerGameMap.clear();
+                        googleMap.clear();
+                        for (QueryDocumentSnapshot document : value) {
+                            GameModel game = document.toObject(GameModel.class);
+                            LatLng location = new LatLng(game.getLatitude(), game.getLongitude());
+                            Marker marker = googleMap.addMarker(new MarkerOptions().position(location).title(game.getGameType()));
+                            markerGameMap.put(marker, game);
+                        }
+                    }
+                });
     }
+    
+   private void showGameDetailsDialog(GameModel game) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    LayoutInflater inflater = this.getLayoutInflater();
+    View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
+    builder.setView(dialogView);
 
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mapView.onSaveInstanceState(outState);
-    }
+    TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
+    TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
+    TextView mandatoryItemsTextView = dialogView.findViewById(R.id.mandatoryItemsTextView);
+    TextView experienceTextView = dialogView.findViewById(R.id.experienceTextView);
+    TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
+    TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
+    TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
+    Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
 
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mapView.onLowMemory();
+    gameTypeTextView.setText(game.getGameType());
+    gameSizeTextView.setText(String.valueOf(game.getGameSize()));
+    mandatoryItemsTextView.setText(game.getMandatoryItems());
+    experienceTextView.setText(game.getExperienceAsString());
+    genderTextView.setText(game.getGenderPreferenceAsString());
+    ageTextView.setText(game.getAgePreferenceAsString());
+    notesTextView.setText(game.getNotes());
+
+    joinGameButton.setOnClickListener(v -> joinGame(game));
+
+    AlertDialog dialog = builder.create();
+    dialog.show();
+}
+
+private void joinGame(GameModel game) {
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    if (currentUser != null) {
+        String currentUserID = currentUser.getUid();
+
+        FirebaseFirestore.getInstance().collection("games").document(game.getGameID())
+            .update("participants", FieldValue.arrayUnion(currentUserID))
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(CreateGameActivity.this, "Successfully joined the game", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(CreateGameActivity.this, "Failed to join the game", Toast.LENGTH_SHORT).show();
+                    Log.e("ERR JOINING GAME", String.valueOf(task.getException()));
+                }
+            });
+    } else {
+        Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
     }
+}
+
 
     private void createGame() {
         String gameType = gameTypeInput.getText().toString();
@@ -168,4 +235,34 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                     }
                 });
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
 }
