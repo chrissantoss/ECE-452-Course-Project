@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,15 +39,21 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.app.AlertDialog;
 
-public class HomePageActivity extends AppCompatActivity {
+public class HomePageActivity extends AppCompatActivity  {
 
     private FusedLocationProviderClient fusedLocationClient;
     private GoogleMap map;
     private LatLng userLocation;
     private ArrayList<GameModel> games  = new ArrayList<GameModel>();
     private LatLng defaultLocation =  new LatLng(43.4723, -80.5449);
+    private LatLng selectedLocation;
+    private Map<Marker, GameModel> markerGameMap = new HashMap<>();
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.homepage);
@@ -61,7 +69,7 @@ public class HomePageActivity extends AppCompatActivity {
         });
 
         Button openCreateGameFormButton = findViewById(R.id.openCreateGameFormButton);
-
+        fetchGamesAndAddMarkers();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -80,44 +88,54 @@ public class HomePageActivity extends AppCompatActivity {
             intent.putExtra("userLocation", userLocation);
             startActivity(intent);
         });
-    }
 
+    }
     private void initializeMap() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(googleMap -> {
-                map = googleMap;
-                map.setMyLocationEnabled(true);
+        mapFragment.getMapAsync(googleMap -> {
+            map = googleMap;
+            map.setMyLocationEnabled(true);
 
-                // Getting last known location
-                fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        // Move camera to user's location
-                        Toast.makeText(this, "Location found", Toast.LENGTH_LONG).show();
-                        userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
-                    } else {
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15));
-                        Toast.makeText(this, "Location not found", Toast.LENGTH_LONG).show();
-                    }
-                    fetchGamesAndAddMarkers();
-                });
-
-                map.setOnMarkerClickListener(marker -> {
-                    GameModel game = markerGameMap.get(marker);
-                    if (game != null) {
-                        showGameDetailsDialog(game);
-                    }
-                    return true;
-                });
+            // Getting last known location
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    // Move camera to user's location
+                    Toast.makeText(this, "Location found", Toast.LENGTH_LONG).show();
+                    userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                } else {
+                    Toast.makeText(this, "Location not found", Toast.LENGTH_LONG).show();
+                }
             });
-        }
+
+            for (GameModel game : games) {
+                Log.d("Firestore", "Adding marker at " +game.getLatitude()+", "+ game.getLongitude());
+                LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
+                map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
+            }
+            map.setOnMarkerClickListener(marker -> {
+                GameModel game = markerGameMap.get(marker);
+                Log.d("Firestore", "Marker clicked: " + game);
+                Log.d("Firestore", "Marker clicked: " + marker);
+                Log.d("Firestore", "Marker clicked: " + markerGameMap);
+                fetchGamesAndAddMarkers();
+                if (game != null) {
+                    showGameDetailsDialog(game);
+                }
+                return false;
+            });
+        });
+
+        FirebaseFirestore.getInstance().collection("games").get();
+
     }
 
+
     private void fetchGamesAndAddMarkers() {
+
         FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(queryDocumentSnapshots -> {
             if (queryDocumentSnapshots != null) {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -125,7 +143,8 @@ public class HomePageActivity extends AppCompatActivity {
                     if (game != null) {
                         games.add(game);
                         LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
-                        map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
+                        Marker marker = map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
+                        markerGameMap.put(marker, game);
                     }
                 }
             }
@@ -145,6 +164,7 @@ public class HomePageActivity extends AppCompatActivity {
         TextView genderTextView = dialogView.findViewById(R.id.genderTextView);
         TextView ageTextView = dialogView.findViewById(R.id.ageTextView);
         TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
+        TextView participantsTextView = dialogView.findViewById(R.id.participantsTextView);
         Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
 
         gameTypeTextView.setText(game.getGameType());
@@ -154,6 +174,7 @@ public class HomePageActivity extends AppCompatActivity {
         genderTextView.setText(game.getGenderPreferenceAsString());
         ageTextView.setText(game.getAgePreferenceAsString());
         notesTextView.setText(game.getNotes());
+        participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
         joinGameButton.setOnClickListener(v -> joinGame(game));
 

@@ -1,4 +1,5 @@
 package com.motive.motive.Models;
+import java.util.List;
 
 public class GameModel {
     private String gameID;
