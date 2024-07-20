@@ -176,11 +176,25 @@ public class HomePageActivity extends AppCompatActivity  {
         notesTextView.setText(game.getNotes());
         participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
-        joinGameButton.setOnClickListener(v -> joinGame(game));
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(game.getHostID())) {
+            joinGameButton.setText("Edit Game");
+            joinGameButton.setOnClickListener(v -> editGame(game));
+        } else {
+            joinGameButton.setText("Join Game");
+            joinGameButton.setOnClickListener(v -> joinGame(game));
+        }
 
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+    private void editGame(GameModel game) {
+        Intent intent = new Intent(this, EditGameActivity.class);
+        intent.putExtra("gameID", game.getGameID());
+        startActivity(intent);
+    }
+
 
     private void joinGame(GameModel game) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();

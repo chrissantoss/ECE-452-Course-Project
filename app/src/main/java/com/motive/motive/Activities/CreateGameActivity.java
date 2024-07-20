@@ -220,10 +220,18 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         boolean age17to36 = age17to36Input.isChecked();
         boolean age36 = age36Plus.isChecked();
 
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String hostID = currentUser.getUid();
         String gameID = FirebaseFirestore.getInstance().collection("games").document().getId();
         double latitude = selectedLocation != null ? selectedLocation.latitude : 43.4723;
         double longitude = selectedLocation != null ? selectedLocation.longitude : -80.5449;
-        GameModel game = new GameModel(gameID, "hostID", latitude, longitude, gameSize, gameType);
+
+        GameModel game = new GameModel(gameID, hostID, latitude, longitude, gameSize, gameType);
         game.setExperience(beginner, intermediate, expert);
         game.setGenderPreference(male, female, neutral);
         game.setAgePreference(age16, age17to36, age36);
@@ -232,19 +240,27 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .set(game)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
-                            Log.e("ERR CREATING GAME", String.valueOf(task.getException()));
-                        }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Add the host as a participant
+                        FirebaseFirestore.getInstance().collection("games").document(gameID)
+                                .update("participants", FieldValue.arrayUnion(hostID))
+                                .addOnCompleteListener(task1 -> {
+                                    if (task1.isSuccessful()) {
+                                        Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    } else {
+                                        Toast.makeText(CreateGameActivity.this, "Failed to add host as participant", Toast.LENGTH_SHORT).show();
+                                        Log.e("ERR ADDING HOST", String.valueOf(task1.getException()));
+                                    }
+                                });
+                    } else {
+                        Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR CREATING GAME", String.valueOf(task.getException()));
                     }
                 });
     }
+
     @Override
     protected void onResume() {
         super.onResume();
