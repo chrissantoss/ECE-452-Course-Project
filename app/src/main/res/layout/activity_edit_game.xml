@@ -206,5 +206,17 @@
             android:layout_below="@id/notesInput"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp" />
+        <Button
+            android:id="@+id/deleteGameButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete Game"
+            android:backgroundTint="#FF0000"
+            android:textColor="#FFFFFF"
+            android:layout_below="@id/saveChangesButton"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp" />
+
+
     </RelativeLayout>
 </ScrollView>

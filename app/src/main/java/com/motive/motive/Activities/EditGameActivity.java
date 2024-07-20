@@ -30,6 +30,8 @@ public class EditGameActivity extends AppCompatActivity {
     private CheckBox age36Plus;
     private EditText notesInput;
     private Button saveChangesButton;
+    private Button deleteGameButton;
+
     private MapView mapView;
 
     private String gameID;
@@ -54,6 +56,7 @@ public class EditGameActivity extends AppCompatActivity {
         age36Plus = findViewById(R.id.age36Plus);
         notesInput = findViewById(R.id.notesInput);
         saveChangesButton = findViewById(R.id.saveChangesButton);
+        deleteGameButton = findViewById(R.id.deleteGameButton);
         mapView = findViewById(R.id.mapView);
 
         gameID = getIntent().getStringExtra("gameID");
@@ -62,6 +65,7 @@ public class EditGameActivity extends AppCompatActivity {
         fetchGameDetails(gameID);
 
         saveChangesButton.setOnClickListener(v -> saveChanges());
+        deleteGameButton.setOnClickListener(v -> deleteGame());
     }
 
     private void fetchGameDetails(String gameID) {
@@ -145,4 +149,18 @@ public class EditGameActivity extends AppCompatActivity {
                     }
                 });
     }
+    private void deleteGame() {
+        FirebaseFirestore.getInstance().collection("games").document(gameID)
+                .delete()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Game deleted successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Failed to delete game", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR DELETING GAME", String.valueOf(task.getException()));
+                    }
+                });
+    }
+
 }

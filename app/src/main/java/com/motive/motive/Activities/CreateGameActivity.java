@@ -3,9 +3,11 @@ package com.motive.motive.Activities;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,7 +37,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import jakarta.annotation.Nullable;
@@ -65,6 +72,10 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     private LatLng selectedLocation;
     private Map<Marker, GameModel> markerGameMap = new HashMap<>();
 
+    private Spinner dateSpinner;
+    private Spinner startTimeSpinner;
+    private Spinner endTimeSpinner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,15 +97,26 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         notesInput = findViewById(R.id.notesInput);
         createGameButton = findViewById(R.id.createGameButton);
 
+        // Initialize the new spinners
+        dateSpinner = findViewById(R.id.dateSpinner);
+        startTimeSpinner = findViewById(R.id.startTimeSpinner);
+        endTimeSpinner = findViewById(R.id.endTimeSpinner);
+
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        // Populate spinners
+        populateDateSpinner();
+        populateTimeSpinners(startTimeSpinner);
+        populateTimeSpinners(endTimeSpinner);
+
         createGameButton.setOnClickListener(v -> createGame());
         fetchGamesAndAddMarkers();
 
     }
+
 
    @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -197,6 +219,57 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     }
 }
 
+    private void populateDateSpinner() {
+        List<String> dates = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+        for (int i = 0; i < 7; i++) { // next 7 days
+            dates.add(sdf.format(calendar.getTime()));
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, dates);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateSpinner.setAdapter(adapter);
+    }
+
+    private void populateTimeSpinners(Spinner spinner) {
+        List<String> times = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        for (int i = 0; i < 48; i++) { // 30-minute intervals
+            times.add(sdf.format(calendar.getTime()));
+            calendar.add(Calendar.MINUTE, 30);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, times);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+
+    private void scheduleGameDeletion(String gameID, String endTime) {
+        // Calculate the difference between the current time and the end time
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+        try {
+            long endTimeMillis = sdf.parse(endTime).getTime();
+            long delay = endTimeMillis - System.currentTimeMillis();
+
+            new android.os.Handler().postDelayed(() -> {
+                FirebaseFirestore.getInstance().collection("games").document(gameID).delete()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d("Game Deletion", "Game deleted successfully");
+                            } else {
+                                Log.e("Game Deletion", "Failed to delete game", task.getException());
+                            }
+                        });
+            }, delay);
+        } catch (Exception e) {
+            Log.e("Game Deletion", "Failed to parse end time", e);
+        }
+    }
+
 
     private void createGame() {
         String gameType = gameTypeInput.getText().toString();
@@ -231,12 +304,19 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         double latitude = selectedLocation != null ? selectedLocation.latitude : 43.4723;
         double longitude = selectedLocation != null ? selectedLocation.longitude : -80.5449;
 
+        // Capture start and end times
+        String date = dateSpinner.getSelectedItem().toString();
+        String startTime = startTimeSpinner.getSelectedItem().toString();
+        String endTime = endTimeSpinner.getSelectedItem().toString();
+
         GameModel game = new GameModel(gameID, hostID, latitude, longitude, gameSize, gameType);
         game.setExperience(beginner, intermediate, expert);
         game.setGenderPreference(male, female, neutral);
         game.setAgePreference(age16, age17to36, age36);
         game.setMandatoryItems(mandatoryItems);
         game.setNotes(notes);
+        game.setStartTime(date + " " + startTime);
+        game.setEndTime(date + " " + endTime);
 
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .set(game)
@@ -254,6 +334,9 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                                         Log.e("ERR ADDING HOST", String.valueOf(task1.getException()));
                                     }
                                 });
+
+                        // Schedule deletion of the game after the end time
+                        scheduleGameDeletion(gameID, date + " " + endTime);
                     } else {
                         Toast.makeText(CreateGameActivity.this, "Failed to create game", Toast.LENGTH_SHORT).show();
                         Log.e("ERR CREATING GAME", String.valueOf(task.getException()));
