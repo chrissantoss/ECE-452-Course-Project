@@ -10,8 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull; 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,30 +36,34 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 
-import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import android.app.AlertDialog;
 
-public class HomePageActivity extends AppCompatActivity  {
+public class HomePageActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
     private GoogleMap map;
     private LatLng userLocation;
-    private ArrayList<GameModel> games  = new ArrayList<GameModel>();
-    private LatLng defaultLocation =  new LatLng(43.4723, -80.5449);
+    private ArrayList<GameModel> games = new ArrayList<GameModel>();
+    private LatLng defaultLocation = new LatLng(43.4723, -80.5449);
     private LatLng selectedLocation;
     private Map<Marker, GameModel> markerGameMap = new HashMap<>();
+    private GameModel hostingGame;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.homepage);
 
-        FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(gamesDocuments ->{
+        FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(gamesDocuments -> {
             for (DocumentSnapshot gameDocument : gamesDocuments.getDocuments()) {
-
                 GameModel game = gameDocument.toObject(GameModel.class);
                 if (game != null) {
                     games.add(game);
@@ -80,8 +83,6 @@ public class HomePageActivity extends AppCompatActivity  {
             initializeMap();
         }
 
-
-
         openCreateGameFormButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomePageActivity.this, CreateGameActivity.class);
             intent.putExtra("defaultLocation", defaultLocation);
@@ -89,7 +90,9 @@ public class HomePageActivity extends AppCompatActivity  {
             startActivity(intent);
         });
 
+        fetchHostingGame();
     }
+
     private void initializeMap() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -112,7 +115,7 @@ public class HomePageActivity extends AppCompatActivity  {
             });
 
             for (GameModel game : games) {
-                Log.d("Firestore", "Adding marker at " +game.getLatitude()+", "+ game.getLongitude());
+                Log.d("Firestore", "Adding marker at " + game.getLatitude() + ", " + game.getLongitude());
                 LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
                 map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
             }
@@ -133,7 +136,6 @@ public class HomePageActivity extends AppCompatActivity  {
 
     }
 
-
     private void fetchGamesAndAddMarkers() {
 
         FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -149,6 +151,38 @@ public class HomePageActivity extends AppCompatActivity  {
                 }
             }
         }).addOnFailureListener(e -> Log.e("Firestore", "Error fetching game data", e));
+    }
+
+    private void fetchHostingGame() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String hostID = currentUser.getUid();
+            FirebaseFirestore.getInstance().collection("games")
+                    .whereEqualTo("hostID", hostID)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                                GameModel game = document.toObject(GameModel.class);
+                                if (game != null) {
+                                    try {
+                                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                                        Date currentDate = new Date();
+                                        Date gameEndTime = sdf.parse(game.getEndTime());
+
+                                        if (gameEndTime != null && gameEndTime.after(currentDate)) {
+                                            hostingGame = game;
+                                            break;
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("HomePageActivity", "Error parsing date", e);
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Error fetching hosting game data", e));
+        }
     }
 
     private void showGameDetailsDialog(GameModel game) {
@@ -176,10 +210,49 @@ public class HomePageActivity extends AppCompatActivity  {
         notesTextView.setText(game.getNotes());
         participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
-        joinGameButton.setOnClickListener(v -> joinGame(game));
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(game.getHostID())) {
+            joinGameButton.setText("Edit Game");
+            joinGameButton.setOnClickListener(v -> editGame(game));
+        } else {
+            joinGameButton.setText("Join Game");
+            joinGameButton.setOnClickListener(v -> {
+                if (canJoinGame(game)) {
+                    joinGame(game);
+                } else {
+                    Toast.makeText(HomePageActivity.this, "Cannot join a game while hosting another game at the same time.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private boolean canJoinGame(GameModel game) {
+        if (hostingGame == null) {
+            return true;
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            Date hostingEndTime = sdf.parse(hostingGame.getEndTime());
+            Date gameStartTime = sdf.parse(game.getStartTime());
+
+            if (hostingEndTime != null && gameStartTime != null) {
+                return gameStartTime.after(hostingEndTime);
+            }
+        } catch (Exception e) {
+            Log.e("HomePageActivity", "Error parsing date", e);
+        }
+
+        return false;
+    }
+
+    private void editGame(GameModel game) {
+        Intent intent = new Intent(this, EditGameActivity.class);
+        intent.putExtra("gameID", game.getGameID());
+        startActivity(intent);
     }
 
     private void joinGame(GameModel game) {
@@ -188,15 +261,15 @@ public class HomePageActivity extends AppCompatActivity  {
             String currentUserID = currentUser.getUid();
 
             FirebaseFirestore.getInstance().collection("games").document(game.getGameID())
-                .update("participants", FieldValue.arrayUnion(currentUserID))
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(HomePageActivity.this, "Successfully joined the game", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(HomePageActivity.this, "Failed to join the game", Toast.LENGTH_SHORT).show();
-                        Log.e("ERR JOINING GAME", String.valueOf(task.getException()));
-                    }
-                });
+                    .update("participants", FieldValue.arrayUnion(currentUserID))
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(HomePageActivity.this, "Successfully joined the game", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(HomePageActivity.this, "Failed to join the game", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR JOINING GAME", String.valueOf(task.getException()));
+                        }
+                    });
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
@@ -212,6 +285,4 @@ public class HomePageActivity extends AppCompatActivity  {
             }
         }
     }
-
 }
-

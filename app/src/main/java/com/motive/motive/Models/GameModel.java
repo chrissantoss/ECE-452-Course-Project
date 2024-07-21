@@ -22,6 +22,9 @@ public class GameModel {
     private String notes;
     private List<String> participants;
     private int gameSize;
+    private String startTime;
+    private String endTime;
+
 
     public GameModel() {
         // Public no-arg constructor needed
@@ -154,6 +157,21 @@ public class GameModel {
         return notes;
     } public int getGameSize() {
         return gameSize;
+    }
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
     }
 
 }
