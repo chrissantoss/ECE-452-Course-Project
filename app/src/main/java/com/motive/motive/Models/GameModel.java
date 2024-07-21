@@ -1,4 +1,5 @@
 package com.motive.motive.Models;
+import java.util.Arrays;
 import java.util.List;
 
 public class GameModel {
@@ -20,7 +21,6 @@ public class GameModel {
     private String mandatoryItems;
     private String notes;
     private List<String> participants;
-
     private int gameSize;
 
     public GameModel() {

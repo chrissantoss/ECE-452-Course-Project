@@ -11,4 +11,13 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="host_game">"Host A Game"</string>
+    <string-array name="game_types">
+        <item>Soccer</item>
+        <item>Basketball</item>
+        <item>Football</item>
+        <item>Tennis</item>
+        <item>Volleyball</item>
+        <item>Badminton</item>
+        <item>Other</item>
+    </string-array>
 </resources>
