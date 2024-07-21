@@ -1,0 +1,72 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/gameTypeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Game Type"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/gameSizeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Game Size"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/mandatoryItemsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mandatory Items"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/experienceTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Experience Level"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/genderTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gender Preference"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/ageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Age Preference"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/notesTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Notes"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/participantsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Participants"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/joinGameButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Join Game"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

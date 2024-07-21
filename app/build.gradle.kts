@@ -33,7 +33,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -43,6 +42,9 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+    implementation(libs.google.maps)
+    implementation(libs.play.services.location)
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -1,0 +1,247 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/locationLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_below="@id/locationLabel"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/dateTimeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date and Time"
+            android:layout_below="@id/mapView"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:id="@+id/dateTimeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/dateTimeLabel"
+            android:layout_marginTop="8dp">
+
+            <Spinner
+                android:id="@+id/dateSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/startTimeSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/endTimeSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/experienceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Experience"
+            android:layout_below="@id/dateTimeGroup"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:id="@+id/experienceGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/experienceLabel"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/experienceBeginner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Beginner" />
+
+            <CheckBox
+                android:id="@+id/experienceIntermediate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Intermediate"
+                android:layout_marginStart="16dp" />
+
+            <CheckBox
+                android:id="@+id/experienceExpert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expert"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/gameTypeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Game Type"
+            android:layout_below="@id/experienceGroup"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/gameTypeInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Game Type"
+            android:layout_below="@id/gameTypeLabel"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/gameSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Game Size"
+            android:layout_below="@id/gameTypeInput"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/gameSizeInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Game Size"
+            android:inputType="number"
+            android:layout_below="@id/gameSizeLabel"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/mandatoryItemsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mandatory Items"
+            android:layout_below="@id/gameSizeInput"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/mandatoryItemsInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Items"
+            android:layout_below="@id/mandatoryItemsLabel"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/genderPreferenceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gender Preference"
+            android:layout_below="@id/mandatoryItemsInput"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:id="@+id/genderGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/genderPreferenceLabel"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/genderMale"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Male" />
+
+            <CheckBox
+                android:id="@+id/genderFemale"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Female"
+                android:layout_marginStart="16dp" />
+
+            <CheckBox
+                android:id="@+id/genderNeutral"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Neutral"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/agePreferenceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Age Preference"
+            android:layout_below="@id/genderGroup"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:id="@+id/ageGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/agePreferenceLabel"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/age16Under"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="16 and under" />
+
+            <CheckBox
+                android:id="@+id/age17to36"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="17-36"
+                android:layout_marginStart="16dp" />
+
+            <CheckBox
+                android:id="@+id/age36Plus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="36+"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/notesLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notes"
+            android:layout_below="@id/ageGroup"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/notesInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Notes"
+            android:layout_below="@id/notesLabel"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/createGameButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOST"
+            android:layout_below="@id/notesInput"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp" />
+    </RelativeLayout>
+</ScrollView>

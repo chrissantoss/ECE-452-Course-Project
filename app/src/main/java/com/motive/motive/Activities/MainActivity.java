@@ -7,6 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.motive.motive.R;
 
+import com.google.firebase.FirebaseApp;
+
+
 //public class MainActivity extends AppCompatActivity {
 //    @Override
 //    protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FirebaseApp.initializeApp(this); // Initialize Firebase
         //EdgeToEdge.enable(this); // Uncomment if needed
 
         Intent intent = new Intent(this, LoginActivity.class);
