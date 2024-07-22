@@ -128,8 +128,8 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
         // Populate spinners
         populateDateSpinner();
-        populateTimeSpinners(startTimeSpinner);
-        populateTimeSpinners(endTimeSpinner);
+        populateTimeSpinners(startTimeSpinner, true);
+        updateEndTimeSpinner(startTimeSpinner, endTimeSpinner);
 
         createGameButton.setOnClickListener(v -> createGame());
 //        Commented out due to too much info on the creategame map
@@ -292,20 +292,74 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         dateSpinner.setAdapter(adapter);
     }
 
-    private void populateTimeSpinners(Spinner spinner) {
+    private void populateTimeSpinners(Spinner spinner, boolean isStartTime) {
         List<String> times = new ArrayList<>();
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
+
+        // Set the calendar to the next half-hour interval
+        if (calendar.get(Calendar.MINUTE) < 30) {
+            calendar.set(Calendar.MINUTE, 30);
+        } else {
+            calendar.add(Calendar.HOUR_OF_DAY, 1);
+            calendar.set(Calendar.MINUTE, 0);
+        }
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        // Generate time slots for the next 24 hours in 30-minute intervals
         for (int i = 0; i < 48; i++) { // 30-minute intervals
             times.add(sdf.format(calendar.getTime()));
             calendar.add(Calendar.MINUTE, 30);
         }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, times);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+
+        // Set the default selection to the first item in the list, which is the next half-hour interval
+        spinner.setSelection(0);
     }
+
+    // Method to update the end time spinner based on the selected start time
+    private void updateEndTimeSpinner(Spinner startTimeSpinner, Spinner endTimeSpinner) {
+        startTimeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedStartTime = parent.getItemAtPosition(position).toString();
+                List<String> endTimes = new ArrayList<>();
+                SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                Calendar calendar = Calendar.getInstance();
+
+                try {
+                    // Parse the selected start time
+                    Date startTime = sdf.parse(selectedStartTime);
+                    calendar.setTime(startTime);
+                    calendar.add(Calendar.MINUTE, 30); // Start the end time 30 minutes after start time
+
+                    // Generate time slots for the next 23.5 hours in 30-minute intervals
+                    for (int i = 0; i < 47; i++) { // 30-minute intervals
+                        endTimes.add(sdf.format(calendar.getTime()));
+                        calendar.add(Calendar.MINUTE, 30);
+                    }
+
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(CreateGameActivity.this, android.R.layout.simple_spinner_item, endTimes);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    endTimeSpinner.setAdapter(adapter);
+                    endTimeSpinner.setSelection(0); // Default to the first available end time
+
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
 
 
     private void scheduleGameDeletion(String gameID, String endTime) {
