@@ -4,14 +4,42 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Last Game"
+            android:src="@drawable/ic_arrow_back" />
+
+        <ImageButton
+            android:id="@+id/nextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next Game"
+            android:src="@drawable/ic_arrow_forward" />
+</RelativeLayout>
+
     <TextView
         android:id="@+id/gameTypeTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Game Type"
         android:textSize="18sp"
-        android:textStyle="bold" />
-
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"/>
     <TextView
         android:id="@+id/gameSizeTextView"
         android:layout_width="match_parent"

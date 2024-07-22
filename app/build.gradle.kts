@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
     implementation(libs.google.maps)
+    implementation (libs.google.maps.utils)
     implementation(libs.play.services.location)
     implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
     testImplementation(libs.junit)

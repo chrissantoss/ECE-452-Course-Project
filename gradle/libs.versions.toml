@@ -14,6 +14,7 @@ googleGmsGoogleServices = "4.4.2"
 firebaseFirestore = "25.0.0"
 firebaseAuth = "23.0.0"
 googleMaps = "18.2.0"
+googleMapsUtils = "2.2.6"
 playServicesLocation = "21.3.0"
 kotlin = "2.0.0"
 coreKtx = "1.13.1"
@@ -32,6 +33,7 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googleMaps" }
+google-maps-utils = { module =  "com.google.maps.android:android-maps-utils", version.ref = "googleMapsUtils" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 

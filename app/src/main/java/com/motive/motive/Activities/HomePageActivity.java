@@ -1,12 +1,17 @@
 package com.motive.motive.Activities;
 
+import static com.google.android.gms.common.util.CollectionUtils.listOf;
+
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.AdvancedMarker;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -25,6 +31,8 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterManager;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -35,9 +43,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.motive.motive.data.GameClusterItem;
+import com.motive.motive.data.GameClusterRenderer;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -50,12 +61,16 @@ public class HomePageActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
     private GoogleMap map;
+
+    private ClusterManager<GameClusterItem> mapClusterManager;
     private LatLng userLocation;
     private ArrayList<GameModel> games = new ArrayList<GameModel>();
     private LatLng defaultLocation = new LatLng(43.4723, -80.5449);
     private LatLng selectedLocation;
-    private Map<Marker, GameModel> markerGameMap = new HashMap<>();
+    private Map<GameClusterItem, GameModel> markerGameMap = new HashMap<>();
     private GameModel hostingGame;
+
+    private int currentIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +78,12 @@ public class HomePageActivity extends AppCompatActivity {
         setContentView(R.layout.homepage);
 
         Button openCreateGameFormButton = findViewById(R.id.openCreateGameFormButton);
-        fetchGamesAndAddMarkers();
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
         } else {
             initializeMap();
@@ -89,6 +104,9 @@ public class HomePageActivity extends AppCompatActivity {
         fetchGamesAndAddMarkers();
         Log.d("onStart update games", "Games: " +games.size());
     }
+
+
+
     private void initializeMap() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -97,6 +115,7 @@ public class HomePageActivity extends AppCompatActivity {
         mapFragment.getMapAsync(googleMap -> {
             map = googleMap;
             map.setMyLocationEnabled(true);
+
 
             // Getting last known location
             fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
@@ -110,27 +129,64 @@ public class HomePageActivity extends AppCompatActivity {
                 }
             });
 
-            fetchGamesAndAddMarkers();
-            map.setOnMarkerClickListener(marker -> {
-                GameModel game = markerGameMap.get(marker);
-                Log.d("Firestore", "Marker clicked: " + game);
-                Log.d("Firestore", "Marker clicked: " + marker);
-                Log.d("Firestore", "Marker clicked: " + markerGameMap);
+            mapClusterManager = new ClusterManager<GameClusterItem>(this, map);
+            mapClusterManager.setRenderer(new GameClusterRenderer(this, map, mapClusterManager));
+            map.setOnCameraIdleListener(mapClusterManager);
+            map.setOnInfoWindowClickListener(mapClusterManager);
 
-                if (game != null) {
-                    showGameDetailsDialog(game);
+            mapClusterManager.setOnClusterClickListener(new ClusterManager.OnClusterClickListener<GameClusterItem>() {
+                @Override
+                public boolean onClusterClick(Cluster<GameClusterItem> cluster) {
+
+                    Collection<GameClusterItem> gameClusterItems = cluster.getItems();
+                    List<GameModel> games = new ArrayList<GameModel>();
+                    for(GameClusterItem gameClusterItem:gameClusterItems) {
+
+                        games.add( markerGameMap.get(gameClusterItem));
+
+                    }
+                    Log.i("clicked marker in cluster", "cluster size " + games.size());
+                    if (!games.isEmpty()) {
+                        showGameDetailsDialog(games);
+                    }
+
+                    return true;
                 }
-                return false;
             });
+
+            mapClusterManager.setOnClusterItemClickListener(new ClusterManager.OnClusterItemClickListener<GameClusterItem>() {
+                @Override
+                public boolean onClusterItemClick(GameClusterItem item) {
+                    Log.i("clicked marker ", "cluster size " + item.getTitle());
+                    GameModel game = markerGameMap.get(item);
+                    Log.d("Firestore", "Marker clicked: " + game);
+                    Log.d("Firestore", "Marker clicked: " + item.getTitle());
+                    Log.d("Firestore", "Marker clicked: " + markerGameMap);
+
+                    if (game != null) {
+                        showGameDetailsDialog(listOf(game));
+                    }
+                    return false;
+
+                }
+            });
+            mapClusterManager.cluster();
+
         });
 
-        FirebaseFirestore.getInstance().collection("games").get();
+
 
     }
 
     private void fetchGamesAndAddMarkers() {
         games.clear();
         markerGameMap.clear();
+
+        if(mapClusterManager != null){
+            mapClusterManager.clearItems();
+            mapClusterManager.cluster();
+        }
+
         FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(queryDocumentSnapshots -> {
             if (queryDocumentSnapshots != null) {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -138,12 +194,18 @@ public class HomePageActivity extends AppCompatActivity {
                     if (game != null) {
                         games.add(game);
                         LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
-                        Marker marker = map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
-                        markerGameMap.put(marker, game);
+                        GameClusterItem item = new GameClusterItem(gameLocation.latitude, gameLocation.longitude, game.getGameType(), game.getGameID());
+                        markerGameMap.put(item, game);
+                        mapClusterManager.addItem(item);
+                        mapClusterManager.cluster();
+
                     }
                 }
+                Log.d("finished adding games", "Games: " +games.size());
+
             }
         }).addOnFailureListener(e -> Log.e("Firestore", "Error fetching game data", e));
+
     }
 
     private void fetchHostingGame() {
@@ -178,11 +240,49 @@ public class HomePageActivity extends AppCompatActivity {
         }
     }
 
-    private void showGameDetailsDialog(GameModel game) {
+    private void showGameDetailsDialog(List<GameModel> gameList) {
+        if (gameList == null || gameList.isEmpty()) {
+            return; // No games to show
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_game_details, null);
         builder.setView(dialogView);
+
+
+
+        ImageButton nextButton = dialogView.findViewById(R.id.nextButton);
+        ImageButton backButton = dialogView.findViewById(R.id.backButton);
+
+        if (gameList.size() == 1) {
+            nextButton.setVisibility(View.GONE);
+            backButton.setVisibility(View.GONE);
+        }
+
+        final int[] currentIndex = {0};
+        updatePopupView(gameList.get(currentIndex[0]), dialogView);
+
+        nextButton.setOnClickListener(v -> {
+            currentIndex[0] = (currentIndex[0] + 1) % gameList.size();
+            updatePopupView(gameList.get(currentIndex[0]), dialogView);
+            Log.i("next", "current index" + currentIndex[0]);
+        });
+
+        backButton.setOnClickListener(v -> {
+            currentIndex[0] = (currentIndex[0] - 1 + gameList.size()) % gameList.size();
+            updatePopupView(gameList.get(currentIndex[0]), dialogView);
+            Log.i("back", "current index" + currentIndex[0]);
+        });
+
+
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    private void updatePopupView(GameModel game, View dialogView){
 
         TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
         TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
@@ -193,7 +293,6 @@ public class HomePageActivity extends AppCompatActivity {
         TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
         TextView participantsTextView = dialogView.findViewById(R.id.participantsTextView);
         Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
-
         gameTypeTextView.setText(game.getGameType());
         gameSizeTextView.setText(String.valueOf(game.getGameSize()));
         mandatoryItemsTextView.setText(game.getMandatoryItems());
@@ -204,6 +303,7 @@ public class HomePageActivity extends AppCompatActivity {
         participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         if (currentUser != null && currentUser.getUid().equals(game.getHostID())) {
             joinGameButton.setText("Edit Game");
             joinGameButton.setOnClickListener(v -> editGame(game));
@@ -218,8 +318,6 @@ public class HomePageActivity extends AppCompatActivity {
             });
         }
 
-        AlertDialog dialog = builder.create();
-        dialog.show();
     }
 
     private boolean canJoinGame(GameModel game) {
