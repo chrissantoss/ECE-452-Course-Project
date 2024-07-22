@@ -373,8 +373,12 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
         String hostID = currentUser.getUid();
         String gameID = FirebaseFirestore.getInstance().collection("games").document().getId();
-        double latitude = selectedLocation != null ? selectedLocation.latitude : 43.4723;
-        double longitude = selectedLocation != null ? selectedLocation.longitude : -80.5449;
+        if (selectedLocation == null){
+            Toast.makeText(this, "Must pick a location on the map", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double latitude = selectedLocation.latitude;
+        double longitude = selectedLocation.longitude;
 
         // Capture start and end times
         String date = dateSpinner.getSelectedItem().toString();
