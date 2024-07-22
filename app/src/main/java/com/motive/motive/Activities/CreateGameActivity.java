@@ -327,7 +327,8 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
 
     private void createGame() {
-        String gameType = gameTypeDropDown.toString();
+        String gameType = gameTypeDropDown.getSelectedItem().toString();
+
         String gameSizeStr = gameSizeInput.getText().toString();
         String mandatoryItems = mandatoryItemsInput.getText().toString();
         String notes = notesInput.getText().toString();
