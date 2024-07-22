@@ -2,6 +2,7 @@ package com.motive.motive.Activities;
 
 import static com.google.android.gms.common.util.CollectionUtils.listOf;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -87,6 +88,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     private ScrollView scroll;
     private ImageView mapViewContainer;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,7 +130,8 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         populateTimeSpinners(endTimeSpinner);
 
         createGameButton.setOnClickListener(v -> createGame());
-        fetchGamesAndAddMarkers();
+//        Commented out due to too much info on the creategame map
+//        fetchGamesAndAddMarkers();
 
 
         mapViewContainer.setOnTouchListener(new View.OnTouchListener() {
