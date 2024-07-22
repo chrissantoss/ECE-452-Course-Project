@@ -294,7 +294,18 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             return;
         }
 
-        int gameSize = Integer.parseInt(gameSizeStr);
+        int gameSize;
+        try {
+            gameSize = Integer.parseInt(gameSizeStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Game Size must be a valid number", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (gameSize <= 0) {
+            Toast.makeText(this, "Game Size must be greater than 0", Toast.LENGTH_SHORT).show();
+            return;
+        }
         boolean beginner = experienceBeginner.isChecked();
         boolean intermediate = experienceIntermediate.isChecked();
         boolean expert = experienceExpert.isChecked();
@@ -320,6 +331,11 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         String date = dateSpinner.getSelectedItem().toString();
         String startTime = startTimeSpinner.getSelectedItem().toString();
         String endTime = endTimeSpinner.getSelectedItem().toString();
+
+        if (TextUtils.isEmpty(date) || TextUtils.isEmpty(startTime) || TextUtils.isEmpty(endTime)) {
+            Toast.makeText(this, "Date, Start Time, and End Time are required", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // Error Checking
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
