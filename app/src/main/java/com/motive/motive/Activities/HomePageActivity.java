@@ -26,6 +26,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.motive.motive.Models.GameModel;
+import com.motive.motive.Models.UserModel;
 import com.motive.motive.R;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -55,7 +56,7 @@ public class HomePageActivity extends AppCompatActivity {
     private LatLng defaultLocation = new LatLng(43.4723, -80.5449);
     private LatLng selectedLocation;
     private Map<Marker, GameModel> markerGameMap = new HashMap<>();
-    private GameModel hostingGame;
+//    private GameModel hostingGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,6 +149,7 @@ public class HomePageActivity extends AppCompatActivity {
 
     private void fetchHostingGame() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        UserModel userModel = new UserModel(currentUser.getUid());
         if (currentUser != null) {
             String hostID = currentUser.getUid();
             FirebaseFirestore.getInstance().collection("games")
@@ -164,7 +166,8 @@ public class HomePageActivity extends AppCompatActivity {
                                         Date gameEndTime = sdf.parse(game.getEndTime());
 
                                         if (gameEndTime != null && gameEndTime.after(currentDate)) {
-                                            hostingGame = game;
+                                            userModel.setHostingGame(game);
+                                            storeUserModelInDatabase(userModel);
                                             break;
                                         }
                                     } catch (Exception e) {
@@ -177,6 +180,15 @@ public class HomePageActivity extends AppCompatActivity {
                     .addOnFailureListener(e -> Log.e("Firestore", "Error fetching hosting game data", e));
         }
     }
+
+    private void storeUserModelInDatabase(UserModel userModel) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(userModel.getUserID())
+                .set(userModel)
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "UserModel successfully written!"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Error writing UserModel", e));
+    }
+
 
     private void showGameDetailsDialog(GameModel game) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -210,6 +222,7 @@ public class HomePageActivity extends AppCompatActivity {
         } else {
             joinGameButton.setText("Join Game");
             joinGameButton.setOnClickListener(v -> {
+                Log.d("OverHERE", "currentUser: " +"helloo");
                 if (canJoinGame(game)) {
                     joinGame(game);
                 } else {
@@ -222,21 +235,71 @@ public class HomePageActivity extends AppCompatActivity {
         dialog.show();
     }
 
+//    private boolean canJoinGame(GameModel game) {
+//        if (hostingGame == null) {
+//            return true;
+//        }
+//
+//        try {
+//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+//            Date hostingEndTime = sdf.parse(hostingGame.getEndTime());
+//            Date gameStartTime = sdf.parse(game.getStartTime());
+//
+//            if (hostingEndTime != null && gameStartTime != null) {
+//                return gameStartTime.after(hostingEndTime);
+//            }
+//        } catch (Exception e) {
+//            Log.e("HomePageActivity", "Error parsing date", e);
+//        }
+//
+//        return false;
+//    }
+
     private boolean canJoinGame(GameModel game) {
-        if (hostingGame == null) {
-            return true;
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.e("canJoinGame", "User not authenticated");
+            return false;
         }
 
+        Log.d("CanJoinGame", "currentUser: " +currentUser.getUid());
+        String userID = currentUser.getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-            Date hostingEndTime = sdf.parse(hostingGame.getEndTime());
-            Date gameStartTime = sdf.parse(game.getStartTime());
+            DocumentSnapshot documentSnapshot = db.collection("users").document(userID).get().getResult();
+            if (documentSnapshot.exists()) {
+                UserModel userModel = documentSnapshot.toObject(UserModel.class);
+                Log.e("CanJoinGame", "SavedUser: " + userModel.getHostingGame().getGameType());
 
-            if (hostingEndTime != null && gameStartTime != null) {
-                return gameStartTime.after(hostingEndTime);
+                if (userModel != null) {
+                    GameModel hostingGame = userModel.getHostingGame();
+                    if (hostingGame != null) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                        Date currentDate = new Date();
+                        Date hostingEndTime = sdf.parse(hostingGame.getEndTime());
+
+                        if (hostingEndTime != null && hostingEndTime.before(currentDate)) {
+                            // Hosting game has expired, set it to null
+                            userModel.setHostingGame(null);
+                            storeUserModelInDatabase(userModel);
+                            hostingGame = null; // Update the local variable to reflect the change
+                        }
+
+                        if (hostingGame == null) {
+                            return true; // Hosting game is null after the check
+                        } else {
+                            Date gameStartTime = sdf.parse(game.getStartTime());
+                            if (gameStartTime != null) {
+                                return gameStartTime.after(hostingEndTime);
+                            }
+                        }
+                    } else {
+                        return true; // User is not hosting any game, they can join the game
+                    }
+                }
             }
         } catch (Exception e) {
-            Log.e("HomePageActivity", "Error parsing date", e);
+            Log.e("canJoinGame", "Error fetching user data or parsing date", e);
         }
 
         return false;

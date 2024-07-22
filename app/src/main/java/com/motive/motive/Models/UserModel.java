@@ -1,39 +1,38 @@
 package com.motive.motive.Models;
 
-public class UserModel {
-    private String username;
-    private String userId;
-    private String fcmToken;
+import com.google.firebase.auth.FirebaseUser;
 
-    public UserModel() {
+public class UserModel  {
+//    private String username;
+//    private String userId;
+//    private String fcmToken;
+    private String UserID;
+    private GameModel hostingGame=null;
+
+
+    public UserModel(String Uid) {
+        this.UserID=Uid;
     }
 
-    public UserModel(String username,String userId) {
-        this.username = username;
-        this.userId = userId;
+//    public UserModel(String username,String userId) {
+//        this.username = username;
+//        this.userId = userId;
+//    }
+
+    public boolean isHostingGame(){return hostingGame==null;}
+
+    public void setUserID(String userID) {
+        UserID = userID;
+    }
+    public String  getUserID(){
+        return this.UserID;
     }
 
-    public String getUsername() {
-        return username;
+    public void setHostingGame(GameModel hostingGame) {
+        this.hostingGame = hostingGame;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getFcmToken() {
-        return fcmToken;
-    }
-
-    public void setFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
+    public GameModel getHostingGame() {
+        return this.hostingGame;
     }
 }
