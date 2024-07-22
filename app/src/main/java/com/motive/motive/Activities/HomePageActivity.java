@@ -62,15 +62,6 @@ public class HomePageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.homepage);
 
-        FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(gamesDocuments -> {
-            for (DocumentSnapshot gameDocument : gamesDocuments.getDocuments()) {
-                GameModel game = gameDocument.toObject(GameModel.class);
-                if (game != null) {
-                    games.add(game);
-                }
-            }
-        });
-
         Button openCreateGameFormButton = findViewById(R.id.openCreateGameFormButton);
         fetchGamesAndAddMarkers();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -92,7 +83,12 @@ public class HomePageActivity extends AppCompatActivity {
 
         fetchHostingGame();
     }
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+        fetchGamesAndAddMarkers();
+        Log.d("onStart update games", "Games: " +games.size());
+    }
     private void initializeMap() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -114,17 +110,13 @@ public class HomePageActivity extends AppCompatActivity {
                 }
             });
 
-            for (GameModel game : games) {
-                Log.d("Firestore", "Adding marker at " + game.getLatitude() + ", " + game.getLongitude());
-                LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
-                map.addMarker(new MarkerOptions().position(gameLocation).title(game.getGameType()));
-            }
+            fetchGamesAndAddMarkers();
             map.setOnMarkerClickListener(marker -> {
                 GameModel game = markerGameMap.get(marker);
                 Log.d("Firestore", "Marker clicked: " + game);
                 Log.d("Firestore", "Marker clicked: " + marker);
                 Log.d("Firestore", "Marker clicked: " + markerGameMap);
-                fetchGamesAndAddMarkers();
+
                 if (game != null) {
                     showGameDetailsDialog(game);
                 }
@@ -137,7 +129,8 @@ public class HomePageActivity extends AppCompatActivity {
     }
 
     private void fetchGamesAndAddMarkers() {
-
+        games.clear();
+        markerGameMap.clear();
         FirebaseFirestore.getInstance().collection("games").get().addOnSuccessListener(queryDocumentSnapshots -> {
             if (queryDocumentSnapshots != null) {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {

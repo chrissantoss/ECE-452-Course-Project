@@ -30,7 +30,7 @@ public class GameModel {
         // Public no-arg constructor needed
     }
 
-    public GameModel(String gameID, String hostID, double latitude, double longitude, int maxPlayers, String gameTyp) {
+    public GameModel(String gameID, String hostID, double latitude, double longitude, int maxPlayers, String gameType) {
         this.gameID = gameID;
         this.hostID = hostID;
         this.latitude = latitude;
