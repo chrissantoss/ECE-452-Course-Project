@@ -46,9 +46,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -338,7 +340,18 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             return;
         }
 
-        int gameSize = Integer.parseInt(gameSizeStr);
+        int gameSize;
+        try {
+            gameSize = Integer.parseInt(gameSizeStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Game Size must be a valid number", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (gameSize <= 0) {
+            Toast.makeText(this, "Game Size must be greater than 0", Toast.LENGTH_SHORT).show();
+            return;
+        }
         boolean beginner = experienceBeginner.isChecked();
         boolean intermediate = experienceIntermediate.isChecked();
         boolean expert = experienceExpert.isChecked();
@@ -364,6 +377,57 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         String date = dateSpinner.getSelectedItem().toString();
         String startTime = startTimeSpinner.getSelectedItem().toString();
         String endTime = endTimeSpinner.getSelectedItem().toString();
+
+        if (TextUtils.isEmpty(date) || TextUtils.isEmpty(startTime) || TextUtils.isEmpty(endTime)) {
+            Toast.makeText(this, "Date, Start Time, and End Time are required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Error Checking
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdfTime24Hour = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        SimpleDateFormat sdfTime12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+        String currentDateStr = sdfDate.format(calendar.getTime());
+        String currentTimeStr = sdfTime24Hour.format(calendar.getTime());
+        String selectedStartDateStr = date + " " + startTime;
+        String selectedEndDateStr = date + " " + endTime;
+
+        try {
+            Date currentDate = sdfDate.parse(currentDateStr);
+            Date selectedDate = sdfDate.parse(date);
+            Date currentTime = sdfTime24Hour.parse(currentTimeStr);
+            Date startTimeDate = sdfTime12Hour.parse(startTime);
+            Date endTimeDate = sdfTime12Hour.parse(endTime);
+
+            // Log current and selected dates and times
+            Log.d("CreateGame", "Current Date: " + currentDateStr);
+            Log.d("CreateGame", "Selected Date: " + date);
+            Log.d("CreateGame", "Current Time: " + currentTimeStr);
+            Log.d("CreateGame", "Start Time: " + startTime);
+            Log.d("CreateGame", "End Time: " + endTime);
+
+            if (selectedDate.before(currentDate)) {
+                Toast.makeText(this, "Start date cannot be before the current date", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (selectedDate.equals(currentDate) && startTimeDate.before(currentTime)) {
+                Toast.makeText(this, "Selected time cannot be before the current time on the same date", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (endTimeDate.before(startTimeDate)) {
+                Toast.makeText(this, "End time cannot be before the start time", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error parsing date/time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         GameModel game = new GameModel(gameID, hostID, latitude, longitude, gameSize, gameType);
         game.setExperience(beginner, intermediate, expert);
