@@ -5,7 +5,11 @@ import static com.google.android.gms.common.util.CollectionUtils.listOf;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+
 import android.view.MotionEvent;
+
+import android.widget.AdapterView;
+
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -57,7 +61,7 @@ import com.google.android.gms.maps.model.Marker;
 
 public class CreateGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private EditText gameTypeInput;
+    private Spinner gameTypeDropDown;
     private EditText gameSizeInput;
     private EditText mandatoryItemsInput;
     private CheckBox experienceBeginner;
@@ -90,7 +94,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
 
         // Initialize UI components
-        gameTypeInput = findViewById(R.id.gameTypeInput);
+        gameTypeDropDown = findViewById(R.id.gameTypeDropdown);
         gameSizeInput = findViewById(R.id.gameSizeInput);
         mandatoryItemsInput = findViewById(R.id.mandatoryItemsInput);
         experienceBeginner = findViewById(R.id.experienceBeginner);
@@ -126,6 +130,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         createGameButton.setOnClickListener(v -> createGame());
         fetchGamesAndAddMarkers();
 
+
         mapViewContainer.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -154,6 +159,16 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                 }
             }
         });
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.game_types, android.R.layout.simple_spinner_item);
+
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Apply the adapter to the spinner
+        gameTypeDropDown.setAdapter(adapter);
+
 
     }
 
@@ -312,7 +327,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
 
     private void createGame() {
-        String gameType = gameTypeInput.getText().toString();
+        String gameType = gameTypeDropDown.toString();
         String gameSizeStr = gameSizeInput.getText().toString();
         String mandatoryItems = mandatoryItemsInput.getText().toString();
         String notes = notesInput.getText().toString();
