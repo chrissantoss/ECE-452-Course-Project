@@ -1,13 +1,21 @@
 package com.motive.motive.Activities;
 
+import static com.google.android.gms.common.util.CollectionUtils.listOf;
+
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+
+import android.view.MotionEvent;
+
 import android.widget.AdapterView;
+
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -76,11 +84,14 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
     private Spinner dateSpinner;
     private Spinner startTimeSpinner;
     private Spinner endTimeSpinner;
+    private ScrollView scroll;
+    private ImageView mapViewContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_game);
+
 
         // Initialize UI components
         gameTypeDropDown = findViewById(R.id.gameTypeDropdown);
@@ -107,6 +118,9 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        scroll = (ScrollView) findViewById(R.id.scroll);
+        mapViewContainer = (ImageView)findViewById(R.id.transparentContainer);
+
 
         // Populate spinners
         populateDateSpinner();
@@ -116,6 +130,36 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         createGameButton.setOnClickListener(v -> createGame());
         fetchGamesAndAddMarkers();
 
+
+        mapViewContainer.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.i("action", "action");
+                int action = event.getAction();
+                switch (action) {
+
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        scroll.requestDisallowInterceptTouchEvent(true);
+                        Log.i("ImagePress", "actiondown");
+                        return false;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        scroll.requestDisallowInterceptTouchEvent(false);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        scroll.requestDisallowInterceptTouchEvent(true);
+                        Log.i("ImagePress", "actionmove");
+                        return false;
+
+                    default:
+                        return false;
+                }
+            }
+        });
+
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.game_types, android.R.layout.simple_spinner_item);
 
@@ -124,6 +168,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
         // Apply the adapter to the spinner
         gameTypeDropDown.setAdapter(adapter);
+
 
     }
 
@@ -282,7 +327,8 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
 
     private void createGame() {
-        String gameType = gameTypeDropDown.toString();
+        String gameType = gameTypeDropDown.getSelectedItem().toString();
+
         String gameSizeStr = gameSizeInput.getText().toString();
         String mandatoryItems = mandatoryItemsInput.getText().toString();
         String notes = notesInput.getText().toString();
@@ -328,22 +374,19 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
         game.setStartTime(date + " " + startTime);
         game.setEndTime(date + " " + endTime);
 
+        game.setParticipants(listOf(hostID));
+
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .set(game)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Add the host as a participant
-                        FirebaseFirestore.getInstance().collection("games").document(gameID)
-                                .update("participants", FieldValue.arrayUnion(hostID))
-                                .addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    } else {
-                                        Toast.makeText(CreateGameActivity.this, "Failed to add host as participant", Toast.LENGTH_SHORT).show();
-                                        Log.e("ERR ADDING HOST", String.valueOf(task1.getException()));
-                                    }
-                                });
+
+
+                        Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
+                        Log.i("Game Created", gameID);
+                        finish();
+
+
 
                         // Schedule deletion of the game after the end time
                         scheduleGameDeletion(gameID, date + " " + endTime);

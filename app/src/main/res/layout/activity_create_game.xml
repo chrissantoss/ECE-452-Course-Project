@@ -1,6 +1,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/scroll">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,12 +16,25 @@
             android:textStyle="bold"
             android:layout_marginTop="16dp" />
 
+
+
         <com.google.android.gms.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="350dp"
             android:layout_below="@id/locationLabel"
             android:layout_marginTop="16dp" />
+
+        <ImageView
+            android:id="@+id/transparentContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/mapView"
+            android:layout_alignTop="@+id/mapView"
+            android:layout_alignEnd="@+id/mapView"
+            android:layout_alignBottom="@+id/mapView"
+            android:src="#00000000" />
+
 
         <TextView
             android:id="@+id/dateTimeLabel"
