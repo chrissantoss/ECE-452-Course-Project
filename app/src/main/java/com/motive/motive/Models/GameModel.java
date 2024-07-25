@@ -1,4 +1,6 @@
 package com.motive.motive.Models;
+
+import com.google.firebase.firestore.PropertyName;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,6 +11,7 @@ public class GameModel {
     private double longitude;
     private int maxPlayers;
     private String gameType;
+
     private boolean beginner;
     private boolean intermediate;
     private boolean expert;
@@ -25,7 +28,6 @@ public class GameModel {
     private String startTime;
     private String endTime;
 
-
     public GameModel() {
         // Public no-arg constructor needed
     }
@@ -41,7 +43,6 @@ public class GameModel {
     }
 
     // Getters and Setters
-    // Include setters for the additional fields
 
     public String getGameID() {
         return gameID;
@@ -91,32 +92,112 @@ public class GameModel {
         this.gameType = gameType;
     }
 
-    public void setExperience(boolean beginner, boolean intermediate, boolean expert) {
+    @PropertyName("beginner")
+    public boolean isBeginner() {
+        return beginner;
+    }
+
+    @PropertyName("beginner")
+    public void setBeginner(boolean beginner) {
         this.beginner = beginner;
+    }
+
+    @PropertyName("intermediate")
+    public boolean isIntermediate() {
+        return intermediate;
+    }
+
+    @PropertyName("intermediate")
+    public void setIntermediate(boolean intermediate) {
         this.intermediate = intermediate;
+    }
+
+    @PropertyName("expert")
+    public boolean isExpert() {
+        return expert;
+    }
+
+    @PropertyName("expert")
+    public void setExpert(boolean expert) {
         this.expert = expert;
     }
 
-    public void setGenderPreference(boolean male, boolean female, boolean neutral) {
+    @PropertyName("male")
+    public boolean isMale() {
+        return male;
+    }
+
+    @PropertyName("male")
+    public void setMale(boolean male) {
         this.male = male;
+    }
+
+    @PropertyName("female")
+    public boolean isFemale() {
+        return female;
+    }
+
+    @PropertyName("female")
+    public void setFemale(boolean female) {
         this.female = female;
+    }
+
+    @PropertyName("neutral")
+    public boolean isNeutral() {
+        return neutral;
+    }
+
+    @PropertyName("neutral")
+    public void setNeutral(boolean neutral) {
         this.neutral = neutral;
     }
 
-    public void setAgePreference(boolean age16, boolean age17to36, boolean age36) {
+    @PropertyName("age16")
+    public boolean isAge16() {
+        return age16;
+    }
+
+    @PropertyName("age16")
+    public void setAge16(boolean age16) {
         this.age16 = age16;
+    }
+
+    @PropertyName("age17to36")
+    public boolean isAge17to36() {
+        return age17to36;
+    }
+
+    @PropertyName("age17to36")
+    public void setAge17to36(boolean age17to36) {
         this.age17to36 = age17to36;
+    }
+
+    @PropertyName("age36")
+    public boolean isAge36() {
+        return age36;
+    }
+
+    @PropertyName("age36")
+    public void setAge36(boolean age36) {
         this.age36 = age36;
+    }
+
+    public String getMandatoryItems() {
+        return mandatoryItems;
     }
 
     public void setMandatoryItems(String mandatoryItems) {
         this.mandatoryItems = mandatoryItems;
     }
 
+    public String getNotes() {
+        return notes;
+    }
+
     public void setNotes(String notes) {
         this.notes = notes;
     }
-    
+
     public List<String> getParticipants() {
         return participants;
     }
@@ -124,40 +205,15 @@ public class GameModel {
     public void setParticipants(List<String> participants) {
         this.participants = participants;
     }
-    
-    public String getExperienceAsString() {
-        StringBuilder experience = new StringBuilder();
-        if (beginner) experience.append("Beginner ");
-        if (intermediate) experience.append("Intermediate ");
-        if (expert) experience.append("Expert ");
-        return experience.toString().trim();
-    }
 
-    public String getGenderPreferenceAsString() {
-        StringBuilder gender = new StringBuilder();
-        if (male) gender.append("Male ");
-        if (female) gender.append("Female ");
-        if (neutral) gender.append("Neutral ");
-        return gender.toString().trim();
-    }
-
-    public String getAgePreferenceAsString() {
-        StringBuilder age = new StringBuilder();
-        if (age16) age.append("16 and under ");
-        if (age17to36) age.append("17 to 36 ");
-        if (age36) age.append("36+ ");
-        return age.toString().trim();
-    }
-
-    public String getMandatoryItems() {
-        return mandatoryItems;
-    }
-
-    public String getNotes() {
-        return notes;
-    } public int getGameSize() {
+    public int getGameSize() {
         return gameSize;
     }
+
+    public void setGameSize(int gameSize) {
+        this.gameSize = gameSize;
+    }
+
     public String getStartTime() {
         return startTime;
     }
@@ -174,4 +230,48 @@ public class GameModel {
         this.endTime = endTime;
     }
 
+    @PropertyName("experienceAsString")
+    public void setExperienceAsString(String experienceAsString) {
+        this.beginner = experienceAsString.contains("Beginner");
+        this.intermediate = experienceAsString.contains("Intermediate");
+        this.expert = experienceAsString.contains("Expert");
+    }
+
+    @PropertyName("genderPreferenceAsString")
+    public void setGenderPreferenceAsString(String genderPreferenceAsString) {
+        this.male = genderPreferenceAsString.contains("Male");
+        this.female = genderPreferenceAsString.contains("Female");
+        this.neutral = genderPreferenceAsString.contains("Neutral");
+    }
+
+    @PropertyName("agePreferenceAsString")
+    public void setAgePreferenceAsString(String agePreferenceAsString) {
+        this.age16 = agePreferenceAsString.contains("16 and under");
+        this.age17to36 = agePreferenceAsString.contains("17 to 36");
+        this.age36 = agePreferenceAsString.contains("36+");
+    }
+
+    public String getExperienceAsString() {
+        StringBuilder experience = new StringBuilder();
+        if (this.beginner) experience.append("Beginner ");
+        if (this.intermediate) experience.append("Intermediate ");
+        if (this.expert) experience.append("Expert ");
+        return experience.toString().trim();
+    }
+
+    public String getGenderPreferenceAsString() {
+        StringBuilder gender = new StringBuilder();
+        if (this.male) gender.append("Male ");
+        if (this.female) gender.append("Female ");
+        if (this.neutral) gender.append("Neutral ");
+        return gender.toString().trim();
+    }
+
+    public String getAgePreferenceAsString() {
+        StringBuilder age = new StringBuilder();
+        if (this.age16) age.append("16 and under ");
+        if (this.age17to36) age.append("17 to 36 ");
+        if (this.age36) age.append("36+ ");
+        return age.toString().trim();
+    }
 }

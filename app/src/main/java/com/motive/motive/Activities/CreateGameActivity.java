@@ -387,7 +387,6 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
     private void createGame() {
         String gameType = gameTypeDropDown.getSelectedItem().toString();
-
         String gameSizeStr = gameSizeInput.getText().toString();
         String mandatoryItems = mandatoryItemsInput.getText().toString();
         String notes = notesInput.getText().toString();
@@ -409,6 +408,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             Toast.makeText(this, "Game Size must be greater than 0", Toast.LENGTH_SHORT).show();
             return;
         }
+
         boolean beginner = experienceBeginner.isChecked();
         boolean intermediate = experienceIntermediate.isChecked();
         boolean expert = experienceExpert.isChecked();
@@ -427,7 +427,7 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
 
         String hostID = currentUser.getUid();
         String gameID = FirebaseFirestore.getInstance().collection("games").document().getId();
-        if (selectedLocation == null){
+        if (selectedLocation == null) {
             Toast.makeText(this, "Must pick a location on the map", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -489,30 +489,23 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
             return;
         }
 
-
         GameModel game = new GameModel(gameID, hostID, latitude, longitude, gameSize, gameType);
-        game.setExperience(beginner, intermediate, expert);
-        game.setGenderPreference(male, female, neutral);
-        game.setAgePreference(age16, age17to36, age36);
+        game.setExperienceAsString((beginner ? "Beginner " : "") + (intermediate ? "Intermediate " : "") + (expert ? "Expert " : ""));
+        game.setGenderPreferenceAsString((male ? "Male " : "") + (female ? "Female " : "") + (neutral ? "Neutral " : ""));
+        game.setAgePreferenceAsString((age16 ? "16 and under " : "") + (age17to36 ? "17 to 36 " : "") + (age36 ? "36+ " : ""));
         game.setMandatoryItems(mandatoryItems);
         game.setNotes(notes);
         game.setStartTime(date + " " + startTime);
         game.setEndTime(date + " " + endTime);
-
         game.setParticipants(listOf(hostID));
 
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .set(game)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-
-
                         Toast.makeText(CreateGameActivity.this, "Game Created Successfully", Toast.LENGTH_SHORT).show();
                         Log.i("Game Created", gameID);
                         finish();
-
-
-
                         // Schedule deletion of the game after the end time
                         scheduleGameDeletion(gameID, date + " " + endTime);
                     } else {
@@ -521,6 +514,8 @@ public class CreateGameActivity extends AppCompatActivity implements OnMapReadyC
                     }
                 });
     }
+
+
 
     @Override
     protected void onResume() {

@@ -7,14 +7,21 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.motive.motive.Models.GameModel;
 import com.motive.motive.R;
 
-public class EditGameActivity extends AppCompatActivity {
+public class EditGameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private EditText gameTypeInput;
     private EditText gameSizeInput;
@@ -33,8 +40,11 @@ public class EditGameActivity extends AppCompatActivity {
     private Button deleteGameButton;
 
     private MapView mapView;
+    private GoogleMap googleMap;
+    private Marker gameMarker;
 
     private String gameID;
+    private LatLng gameLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +71,10 @@ public class EditGameActivity extends AppCompatActivity {
 
         gameID = getIntent().getStringExtra("gameID");
 
+        // Initialize MapView
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+
         // Fetch and display current game details
         fetchGameDetails(gameID);
 
@@ -81,6 +95,10 @@ public class EditGameActivity extends AppCompatActivity {
                         setGenderCheckBoxes(game.getGenderPreferenceAsString());
                         setAgeCheckBoxes(game.getAgePreferenceAsString());
                         notesInput.setText(game.getNotes());
+                        gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
+                        if (googleMap != null) {
+                            showGameLocationOnMap(gameLocation);
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -107,7 +125,6 @@ public class EditGameActivity extends AppCompatActivity {
         age36Plus.setChecked(age.contains("36+"));
     }
 
-
     private void saveChanges() {
         String gameType = gameTypeInput.getText().toString();
         int gameSize = Integer.parseInt(gameSizeInput.getText().toString());
@@ -123,21 +140,22 @@ public class EditGameActivity extends AppCompatActivity {
         boolean age36 = age36Plus.isChecked();
         String notes = notesInput.getText().toString();
 
+        // Combine the experience, gender, and age preferences into strings
+        String experience = (beginner ? "Beginner " : "") + (intermediate ? "Intermediate " : "") + (expert ? "Expert " : "");
+        String gender = (male ? "Male " : "") + (female ? "Female " : "") + (neutral ? "Neutral " : "");
+        String age = (age16 ? "16 and under " : "") + (age17to36 ? "17 to 36 " : "") + (age36 ? "36+ " : "");
+
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .update(
                         "gameType", gameType,
                         "maxPlayers", gameSize,
                         "mandatoryItems", mandatoryItems,
-                        "beginner", beginner,
-                        "intermediate", intermediate,
-                        "expert", expert,
-                        "male", male,
-                        "female", female,
-                        "neutral", neutral,
-                        "age16", age16,
-                        "age17to36", age17to36,
-                        "age36", age36,
-                        "notes", notes
+                        "experienceAsString", experience.trim(),
+                        "genderPreferenceAsString", gender.trim(),
+                        "agePreferenceAsString", age.trim(),
+                        "notes", notes,
+                        "latitude", gameLocation.latitude,
+                        "longitude", gameLocation.longitude
                 )
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -149,6 +167,7 @@ public class EditGameActivity extends AppCompatActivity {
                     }
                 });
     }
+
     private void deleteGame() {
         FirebaseFirestore.getInstance().collection("games").document(gameID)
                 .delete()
@@ -163,4 +182,60 @@ public class EditGameActivity extends AppCompatActivity {
                 });
     }
 
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.googleMap = googleMap;
+
+        if (gameLocation != null) {
+            showGameLocationOnMap(gameLocation);
+        }
+
+        googleMap.setOnMapClickListener(latLng -> {
+            if (gameMarker != null) {
+                gameMarker.setPosition(latLng);
+            } else {
+                gameMarker = googleMap.addMarker(new MarkerOptions().position(latLng).title("Game Location"));
+            }
+            gameLocation = latLng;
+        });
+    }
+
+    private void showGameLocationOnMap(LatLng location) {
+        if (gameMarker != null) {
+            gameMarker.setPosition(location);
+        } else {
+            gameMarker = googleMap.addMarker(new MarkerOptions().position(location).title("Game Location"));
+        }
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
 }

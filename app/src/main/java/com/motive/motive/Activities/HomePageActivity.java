@@ -182,7 +182,7 @@ public class HomePageActivity extends AppCompatActivity {
         games.clear();
         markerGameMap.clear();
 
-        if(mapClusterManager != null){
+        if (mapClusterManager != null) {
             mapClusterManager.clearItems();
             mapClusterManager.cluster();
         }
@@ -192,21 +192,25 @@ public class HomePageActivity extends AppCompatActivity {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                     GameModel game = document.toObject(GameModel.class);
                     if (game != null) {
+                        // Log the values to ensure they are fetched correctly
+                        Log.d("GameModel", "Experience: " + game.getExperienceAsString());
+                        Log.d("GameModel", "Gender: " + game.getGenderPreferenceAsString());
+                        Log.d("GameModel", "Age: " + game.getAgePreferenceAsString());
                         games.add(game);
                         LatLng gameLocation = new LatLng(game.getLatitude(), game.getLongitude());
                         GameClusterItem item = new GameClusterItem(gameLocation.latitude, gameLocation.longitude, game.getGameType(), game.getGameID());
                         markerGameMap.put(item, game);
                         mapClusterManager.addItem(item);
                         mapClusterManager.cluster();
-
                     }
                 }
-                Log.d("finished adding games", "Games: " +games.size());
-
+                Log.d("finished adding games", "Games: " + games.size());
             }
         }).addOnFailureListener(e -> Log.e("Firestore", "Error fetching game data", e));
 
     }
+
+
 
     private void fetchHostingGame() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -282,8 +286,7 @@ public class HomePageActivity extends AppCompatActivity {
 
     }
 
-    private void updatePopupView(GameModel game, View dialogView){
-
+    private void updatePopupView(GameModel game, View dialogView) {
         TextView gameTypeTextView = dialogView.findViewById(R.id.gameTypeTextView);
         TextView gameSizeTextView = dialogView.findViewById(R.id.gameSizeTextView);
         TextView mandatoryItemsTextView = dialogView.findViewById(R.id.mandatoryItemsTextView);
@@ -293,13 +296,14 @@ public class HomePageActivity extends AppCompatActivity {
         TextView notesTextView = dialogView.findViewById(R.id.notesTextView);
         TextView participantsTextView = dialogView.findViewById(R.id.participantsTextView);
         Button joinGameButton = dialogView.findViewById(R.id.joinGameButton);
-        gameTypeTextView.setText(game.getGameType());
-        gameSizeTextView.setText(String.valueOf(game.getGameSize()));
-        mandatoryItemsTextView.setText(game.getMandatoryItems());
-        experienceTextView.setText(game.getExperienceAsString());
-        genderTextView.setText(game.getGenderPreferenceAsString());
-        ageTextView.setText(game.getAgePreferenceAsString());
-        notesTextView.setText(game.getNotes());
+
+        gameTypeTextView.setText("Game Type: " + game.getGameType());
+        gameSizeTextView.setText("Game Size: " + String.valueOf(game.getGameSize()));
+        mandatoryItemsTextView.setText("Mandatory Items: " + game.getMandatoryItems());
+        experienceTextView.setText("Experience Level: " + game.getExperienceAsString());
+        genderTextView.setText("Gender Preference: " + game.getGenderPreferenceAsString());
+        ageTextView.setText("Age Preference: " + game.getAgePreferenceAsString());
+        notesTextView.setText("Notes: " + game.getNotes());
         participantsTextView.setText("Participants: " + (game.getParticipants() != null ? game.getParticipants().size() : 0));
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -317,7 +321,6 @@ public class HomePageActivity extends AppCompatActivity {
                 }
             });
         }
-
     }
 
     private boolean canJoinGame(GameModel game) {
